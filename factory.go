@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/jwang25/nreventexporter/internal/metadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
@@ -20,7 +19,7 @@ import (
 func NewFactory() exporter.Factory {
 	otlpHttpExporterFactory:= otlphttpexporter.NewFactory()
 	return exporter.NewFactory(
-		metadata.Type,
+		otlpHttpExporterFactory.Type(),
 		createDefaultConfig(otlpHttpExporterFactory),
 		exporter.WithMetrics(createMetrics, otlpHttpExporterFactory.MetricsStability()),
 	)
