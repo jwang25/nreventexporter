@@ -37,7 +37,7 @@ type baseExporter struct {
 	metricsURL string
 	logsURL    string
 	logger     *zap.Logger
-	settings   exporter.Settings
+	settings   component.TelemetrySettings
 	otlpExporter *exporter.Metrics
 	// Default user-agent header.
 	userAgent        string
@@ -75,7 +75,7 @@ func newExporter(cfg component.Config, set exporter.Settings) (*baseExporter, er
 		config:           oCfg,
 		logger:           set.Logger,
 		userAgent:        userAgent,
-		settings:         set,
+		settings:         set.TelemetrySettings,
 		telemetryBuilder: telemetryBuilder,
 	}, nil
 }
@@ -89,7 +89,12 @@ func (e *baseExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) e
 // start actually creates the HTTP client. The client construction is deferred till this point as this
 // is the only place we get hold of Extensions which are required to construct auth round tripper.
 func (e *baseExporter) Start(ctx context.Context, host component.Host) error {
-	return (*e.otlpExporter).Start(ctx, host)
+	client, err := e.config.ClientConfig.ToClient(ctx, host, e.settings)
+	if err != nil {
+		return err
+	}
+	e.client = client
+	return nil
 }
 
 // Shutdown executes the provided ShutdownFunc if it's not nil.
