@@ -7,9 +7,14 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/jwang25/nreventexporter/internal/metadata"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configcompression"
+	"go.opentelemetry.io/collector/config/confighttp"
+	"go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/config/configretry"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
@@ -21,19 +26,25 @@ func NewFactory() exporter.Factory {
 	otlpHttpExporterFactory:= otlphttpexporter.NewFactory()
 	return exporter.NewFactory(
 		metadata.Type,
-		createDefaultConfig(otlpHttpExporterFactory),
+		createDefaultConfig,
 		exporter.WithMetrics(createMetrics, otlpHttpExporterFactory.MetricsStability()),
 	)
 }
 
-func createDefaultConfig(otlpHttpExporterFactory exporter.Factory) component.CreateDefaultConfigFunc {
-	return func() component.Config {
-		otlpHttpExporterConfig:=otlpHttpExporterFactory.CreateDefaultConfig().(*otlphttpexporter.Config)
-		otlpHttpExporterConfig.Endpoint=""
-		return otlpHttpExporterConfig
+func createDefaultConfig() component.Config {
+	return &Config{
+		RetryConfig: configretry.NewDefaultBackOffConfig(),
+		ClientConfig: confighttp.ClientConfig{
+			Endpoint: "",
+			Timeout:  30 * time.Second,
+			Headers:  map[string]configopaque.String{},
+			// Default to gzip compression
+			Compression: configcompression.TypeGzip,
+			// We almost read 0 bytes, so no need to tune ReadBufferSize.
+			WriteBufferSize: 512 * 1024,
+		},
 	}
 }
-
 
 // composeSignalURL composes the final URL for the signal (traces, metrics, logs) based on the configuration.
 // oCfg is the configuration of the exporter.
