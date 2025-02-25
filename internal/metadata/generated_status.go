@@ -8,7 +8,7 @@ import (
 
 var (
 	Type      = component.MustNewType("nreventexporter")
-	ScopeName = "github.com/xero-internal/observability-pipeline-otel-endpoint/exporter/nreventexporter"
+	ScopeName = "github.com/jwang25/nreventexporter"
 )
 
 const (

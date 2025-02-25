@@ -50,14 +50,14 @@ func TestProviders(t *testing.T) {
 
 	meter := Meter(set)
 	if m, ok := meter.(mockMeter); ok {
-		require.Equal(t, "github.com/xero-internal/observability-pipeline-otel-endpoint/exporter/nreventexporter", m.name)
+		require.Equal(t, "github.com/jwang25/nreventexporter", m.name)
 	} else {
 		require.Fail(t, "returned Meter not mockMeter")
 	}
 
 	tracer := Tracer(set)
 	if m, ok := tracer.(mockTracer); ok {
-		require.Equal(t, "github.com/xero-internal/observability-pipeline-otel-endpoint/exporter/nreventexporter", m.name)
+		require.Equal(t, "github.com/jwang25/nreventexporter", m.name)
 	} else {
 		require.Fail(t, "returned Meter not mockTracer")
 	}

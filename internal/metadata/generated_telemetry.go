@@ -6,17 +6,18 @@ import (
 	"errors"
 
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
 	"sync"
+	"go.opentelemetry.io/otel/trace"
+
 	"go.opentelemetry.io/collector/component"
 )
 
 func Meter(settings component.TelemetrySettings) metric.Meter {
-	return settings.MeterProvider.Meter("github.com/xero-internal/observability-pipeline-otel-endpoint/exporter/nreventexporter")
+	return settings.MeterProvider.Meter("github.com/jwang25/nreventexporter")
 }
 
 func Tracer(settings component.TelemetrySettings) trace.Tracer {
-	return settings.TracerProvider.Tracer("github.com/xero-internal/observability-pipeline-otel-endpoint/exporter/nreventexporter")
+	return settings.TracerProvider.Tracer("github.com/jwang25/nreventexporter")
 }
 
 // TelemetryBuilder provides an interface for components to report telemetry

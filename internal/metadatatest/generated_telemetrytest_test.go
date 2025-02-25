@@ -5,11 +5,11 @@ package metadatatest
 import (
 	"context"
 	"testing"
-
+	"github.com/jwang25/nreventexporter/internal/metadata"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata/metricdatatest"
-	"github.com/jwang25/nreventexporter/internal/metadata"
+
 	"go.opentelemetry.io/collector/component/componenttest"
 )
 

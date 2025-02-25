@@ -67,6 +67,7 @@ func createMetrics(ctx context.Context, set exporter.Settings,cfg component.Conf
 	}
 	oCfg := cfg.(*Config)
 	oce.metricsURL, err = composeSignalURL(oCfg, oCfg.MetricsEndpoint, "metrics", "v1")
+	fmt.Println(oCfg.MetricsEndpoint)
 	if err != nil {
 		return nil, err
 	}
