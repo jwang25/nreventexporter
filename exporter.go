@@ -16,6 +16,7 @@ import (
 	"github.com/jwang25/nreventexporter/internal/metadata"
 	"github.com/jwang25/nreventexporter/internal/metrictoevent"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
@@ -27,6 +28,7 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/proto"
 )
+var _ exporter.Metrics = (*baseExporter)(nil)
 type baseExporter struct {
 	// Input configuration.
 	config     *Config
@@ -35,7 +37,8 @@ type baseExporter struct {
 	metricsURL string
 	logsURL    string
 	logger     *zap.Logger
-	settings   component.TelemetrySettings
+	settings   exporter.Settings
+	otlpExporter *exporter.Metrics
 	// Default user-agent header.
 	userAgent        string
 	telemetryBuilder *metadata.TelemetryBuilder
@@ -72,20 +75,26 @@ func newExporter(cfg component.Config, set exporter.Settings) (*baseExporter, er
 		config:           oCfg,
 		logger:           set.Logger,
 		userAgent:        userAgent,
-		settings:         set.TelemetrySettings,
+		settings:         set,
 		telemetryBuilder: telemetryBuilder,
 	}, nil
 }
+func (e *baseExporter) Capabilities() consumer.Capabilities{
+	return (*e.otlpExporter).Capabilities()
+}
 
+func (e *baseExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error{
+	return (*e.otlpExporter).ConsumeMetrics(ctx, md)
+}
 // start actually creates the HTTP client. The client construction is deferred till this point as this
 // is the only place we get hold of Extensions which are required to construct auth round tripper.
-func (e *baseExporter) start(ctx context.Context, host component.Host) error {
-	client, err := e.config.ClientConfig.ToClient(ctx, host, e.settings)
-	if err != nil {
-		return err
-	}
-	e.client = client
-	return nil
+func (e *baseExporter) Start(ctx context.Context, host component.Host) error {
+	return (*e.otlpExporter).Start(ctx, host)
+}
+
+// Shutdown executes the provided ShutdownFunc if it's not nil.
+func (e *baseExporter) Shutdown(ctx context.Context) error {
+	return (*e.otlpExporter).Shutdown(ctx)
 }
 
 func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {

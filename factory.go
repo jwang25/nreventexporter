@@ -7,42 +7,33 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/jwang25/nreventexporter/internal/metadata"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configcompression"
-	"go.opentelemetry.io/collector/config/confighttp"
-	"go.opentelemetry.io/collector/config/configopaque"
-	"go.opentelemetry.io/collector/config/configretry"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
+	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 )
 
 // NewFactory creates a factory for OTLP exporter.
 func NewFactory() exporter.Factory {
+	otlpHttpExporterFactory:= otlphttpexporter.NewFactory()
 	return exporter.NewFactory(
 		metadata.Type,
-		createDefaultConfig,
-		exporter.WithMetrics(createMetrics, metadata.MetricsStability),
+		createDefaultConfig(otlpHttpExporterFactory),
+		exporter.WithMetrics(createMetrics, otlpHttpExporterFactory.MetricsStability()),
 	)
 }
 
-func createDefaultConfig() component.Config {
-	return &Config{
-		RetryConfig: configretry.NewDefaultBackOffConfig(),
-		ClientConfig: confighttp.ClientConfig{
-			Endpoint: "",
-			Timeout:  30 * time.Second,
-			Headers:  map[string]configopaque.String{},
-			// Default to gzip compression
-			Compression: configcompression.TypeGzip,
-			// We almost read 0 bytes, so no need to tune ReadBufferSize.
-			WriteBufferSize: 512 * 1024,
-		},
+func createDefaultConfig(otlpHttpExporterFactory exporter.Factory) component.CreateDefaultConfigFunc {
+	return func() component.Config {
+		otlpHttpExporterConfig:=otlpHttpExporterFactory.CreateDefaultConfig().(*otlphttpexporter.Config)
+		otlpHttpExporterConfig.Endpoint=""
+		return otlpHttpExporterConfig
 	}
 }
+
 
 // composeSignalURL composes the final URL for the signal (traces, metrics, logs) based on the configuration.
 // oCfg is the configuration of the exporter.
@@ -76,7 +67,6 @@ func createMetrics(ctx context.Context, set exporter.Settings,cfg component.Conf
 	}
 	oCfg := cfg.(*Config)
 	oce.metricsURL, err = composeSignalURL(oCfg, oCfg.MetricsEndpoint, "metrics", "v1")
-	fmt.Println(oCfg.MetricsEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +74,7 @@ func createMetrics(ctx context.Context, set exporter.Settings,cfg component.Conf
 
 	return exporterhelper.NewMetrics(ctx, set, cfg,
 		oce.pushMetrics,
-		exporterhelper.WithStart(oce.start),
+		exporterhelper.WithStart(oce.Start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		// explicitly disable since we rely on http.Client timeout logic.
 		exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}),
