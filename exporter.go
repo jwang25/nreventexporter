@@ -28,16 +28,18 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/proto"
 )
+
 var _ exporter.Metrics = (*baseExporter)(nil)
+
 type baseExporter struct {
 	// Input configuration.
-	config     *Config
-	client     *http.Client
-	tracesURL  string
-	metricsURL string
-	logsURL    string
-	logger     *zap.Logger
-	settings   exporter.Settings
+	config       *Config
+	client       *http.Client
+	tracesURL    string
+	metricsURL   string
+	logsURL      string
+	logger       *zap.Logger
+	settings     exporter.Settings
 	otlpExporter *exporter.Metrics
 	// Default user-agent header.
 	userAgent        string
@@ -53,15 +55,9 @@ const (
 )
 
 // Create new exporter.
-func newExporter(cfg component.Config, set exporter.Settings) (*baseExporter, error) {
-	oCfg := cfg.(*Config)
-	telemetryBuilder, err := metadata.NewTelemetryBuilder(set.TelemetrySettings)
-	if err != nil {
-		return nil, err
-	}
-
-	if oCfg.MetricsEndpoint != "" {
-		_, err := url.Parse(oCfg.MetricsEndpoint)
+func newExporter(otlpExporter *exporter.Metrics, cfg Config, set exporter.Settings, telemetryBuilder *metadata.TelemetryBuilder) (*baseExporter, error) {
+	if cfg.MetricsEndpoint != "" {
+		_, err := url.Parse(cfg.MetricsEndpoint)
 		if err != nil {
 			return nil, errors.New("endpoint must be a valid URL")
 		}
@@ -72,24 +68,31 @@ func newExporter(cfg component.Config, set exporter.Settings) (*baseExporter, er
 
 	// client construction is deferred to start
 	return &baseExporter{
-		config:           oCfg,
+		otlpExporter:     otlpExporter,
+		config:           &cfg,
 		logger:           set.Logger,
 		userAgent:        userAgent,
 		settings:         set,
 		telemetryBuilder: telemetryBuilder,
 	}, nil
 }
-func (e *baseExporter) Capabilities() consumer.Capabilities{
+func (e *baseExporter) Capabilities() consumer.Capabilities {
 	return (*e.otlpExporter).Capabilities()
 }
 
-func (e *baseExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error{
+func (e *baseExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
 	return (*e.otlpExporter).ConsumeMetrics(ctx, md)
 }
+
 // start actually creates the HTTP client. The client construction is deferred till this point as this
 // is the only place we get hold of Extensions which are required to construct auth round tripper.
 func (e *baseExporter) Start(ctx context.Context, host component.Host) error {
-	return (*e.otlpExporter).Start(ctx, host)
+	client, err := e.config.ClientConfig.ToClient(ctx, host, e.settings.TelemetrySettings)
+	if err != nil {
+		return err
+	}
+	e.client = client
+	return nil
 }
 
 // Shutdown executes the provided ShutdownFunc if it's not nil.
