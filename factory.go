@@ -18,16 +18,14 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
-	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 )
 
 // NewFactory creates a factory for OTLP exporter.
 func NewFactory() exporter.Factory {
-	otlpHttpExporterFactory:= otlphttpexporter.NewFactory()
 	return exporter.NewFactory(
 		metadata.Type,
 		createDefaultConfig,
-		exporter.WithMetrics(createMetrics, otlpHttpExporterFactory.MetricsStability()),
+		exporter.WithMetrics(createMetrics, metadata.MetricsStability),
 	)
 }
 
@@ -86,7 +84,7 @@ func createMetrics(ctx context.Context, set exporter.Settings,cfg component.Conf
 
 	return exporterhelper.NewMetrics(ctx, set, cfg,
 		oce.pushMetrics,
-		exporterhelper.WithStart(oce.Start),
+		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		// explicitly disable since we rely on http.Client timeout logic.
 		exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}),
