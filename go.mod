@@ -1,4 +1,4 @@
-module github.com/xero-internal/observability-pipeline-otel-endpoint/exporter/nreventexporter
+module github.com/jwang25/nreventexporter
 
 go 1.23.1
 
