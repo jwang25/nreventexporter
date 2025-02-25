@@ -1,0 +1,49 @@
+receivers:
+  statsd:
+    endpoint: "localhost:8125"
+    aggregation_interval: 30s #default
+    enable_metric_type: false #default
+    timer_histogram_mapping: #default
+      - statsd_type: "histogram" #default
+        observer_type: "gauge" #default
+      - statsd_type: "timer" #default
+        observer_type: "gauge" #default
+  otlp/internal_metrics:
+    protocols:
+      grpc:
+        endpoint: localhost:14317
+
+processors:
+  batch:
+
+exporters:
+  # NOTE: Prior to v0.86.0 use `logging` instead of `debug`.
+  debug:
+    verbosity: detailed
+  otlp/jaeger:
+    endpoint: localhost:14317
+    tls:
+      insecure: true
+  nreventexporter:
+    endpoint: "foo"
+    metrics_endpoint: "<endpoint>"
+    api_key: "<api_key>"
+
+
+service:
+  pipelines:
+    metrics:
+      receivers: [statsd, otlp/internal_metrics]
+      exporters: [nreventexporter]
+  telemetry:
+    logs:
+      level: debug
+    metrics:
+      readers:
+        - periodic:   # default
+            interval: 10000
+            exporter:
+              otlp:
+                protocol: grpc/protobuf
+                endpoint: localhost:14317
+

@@ -1,0 +1,44 @@
+type: nreventexporter
+github_project: shelson/nreventexporter
+
+status:
+  class: exporter
+  stability:
+    beta: [metrics]
+  distributions: [core, contrib, k8s]
+
+tests:
+  config:
+    endpoint: "https://1.2.3.4:1234"
+
+telemetry:
+  metrics:
+    exporter_requests_sent:
+      enabled: true
+      description: Number of requests
+      unit: "1"
+      sum:
+        value_type: int
+        monotonic: true
+    exporter_requests_duration:
+      enabled: true
+      description: Duration of HTTP requests (in milliseconds)
+      unit: ms
+      sum:
+        value_type: int
+        monotonic: true
+    exporter_requests_bytes:
+      enabled: true
+      description: Total size of requests (in bytes)
+      unit: By
+      sum:
+        value_type: int
+        monotonic: true
+    exporter_requests_records:
+      enabled: true
+      description: Total size of requests (in number of records)
+      unit: "{records}"
+      sum:
+        value_type: int
+        monotonic: true
+    
