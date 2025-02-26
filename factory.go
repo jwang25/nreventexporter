@@ -25,7 +25,7 @@ func NewFactory() exporter.Factory {
 func createDefaultConfig(otlpHttpExporterFactory exporter.Factory) component.CreateDefaultConfigFunc {
 	return func() component.Config {
 		otlpHttpExporterDefaultConfig := otlpHttpExporterFactory.CreateDefaultConfig().(*otlphttpexporter.Config)
-		otlpHttpExporterDefaultConfig.Endpoint = ""
+		//otlpHttpExporterDefaultConfig.Endpoint = ""
 		fmt.Println("Printing otlp default configs", otlpHttpExporterDefaultConfig)
 		return &Config{
 			otlpHttpExporterConfig: otlpHttpExporterDefaultConfig,
