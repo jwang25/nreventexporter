@@ -9,7 +9,7 @@ import (
 
 // Config defines configuration for OTLP/HTTP exporter.
 type Config struct {
-	otlpHttpExporterConfig *otlphttpexporter.Config `mapstructure:",squash"`
+	otlpHttpExporterConfig *otlphttpexporter.Config `mapstructure:",squash"` //brings the configs to the top level
 	//confighttp.ClientConfig    `mapstructure:",squash"`  // squash ensures fields are correctly decoded in embedded struct.
 	//RetryConfig                configretry.BackOffConfig `mapstructure:"retry_on_failure"`
 	//exporterhelper.QueueConfig `mapstructure:"sending_queue"`
