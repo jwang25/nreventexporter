@@ -110,7 +110,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 
 	// Build a NR event payload from the metrics data
 	var counter int // number of events in the payload
-	request, counter = metrictoevent.BuildNREventPayload(e.logger, md)
+	request, counter = metrictoevent.BuildNREventPayload(e.logger, md, e.config.eventType)
 
 	e.logger.Debug("MetricsExporter", zap.Int("compressed size", len(request)))
 

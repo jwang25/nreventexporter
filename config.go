@@ -13,7 +13,7 @@ type Config struct {
 	//confighttp.ClientConfig    `mapstructure:",squash"`  // squash ensures fields are correctly decoded in embedded struct.
 	//RetryConfig                configretry.BackOffConfig `mapstructure:"retry_on_failure"`
 	//exporterhelper.QueueConfig `mapstructure:"sending_queue"`
-	// eventType string `mapstructure:"eventType"`
+	eventType string `mapstructure:"eventType"`
 	// The URL to send metrics to. If omitted the Endpoint + "/v1/metrics" will be used.
 	//MetricsEndpoint string `mapstructure:"metrics_endpoint"`
 	// API key to use when sending data to the New Relic backend.

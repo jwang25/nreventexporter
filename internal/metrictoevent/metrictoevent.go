@@ -27,9 +27,9 @@ func resourceToEventMap(res pcommon.Resource, eventMap nrEvent) error {
 
 // metricToEventMap will return a set of dimensions from the
 // metric attributes.
-func metricToEventMap(currentMetric pmetric.Metric) nrEvent {
+func metricToEventMap(eventType string, currentMetric pmetric.Metric) nrEvent {
 	nrEventMap := make(nrEvent)
-	nrEventMap["eventType"] = "otel_statsd"
+	nrEventMap["eventType"] = eventType
 	nrEventMap["name"] = currentMetric.Name()
 	nrEventMap["type"] = currentMetric.Type().String()
 	if nrEventMap["type"] == "Gauge" {
@@ -65,7 +65,7 @@ func metricToEventMap(currentMetric pmetric.Metric) nrEvent {
 }
 
 // MetricsToNREvents converts pdata.Metrics to New Relic event json.
-func MetricsToNREvents(logger *zap.Logger, md pmetric.Metrics) []nrEvent {
+func MetricsToNREvents(logger *zap.Logger, md pmetric.Metrics, eventType string) []nrEvent {
 	var nrEventList []nrEvent
 	rms := md.ResourceMetrics()
 	logger.Debug("MetricsExporter", zap.Int("ResourceMetricsCount", rms.Len()))
@@ -77,7 +77,7 @@ func MetricsToNREvents(logger *zap.Logger, md pmetric.Metrics) []nrEvent {
 			ilm := rm.ScopeMetrics().At(j)
 			for k := 0; k < ilm.Metrics().Len(); k++ {
 				currentMetric := ilm.Metrics().At(k)
-				nrEventMap := metricToEventMap(currentMetric)
+				nrEventMap := metricToEventMap(eventType, currentMetric)
 				nrEventList = append(nrEventList, nrEventMap)
 			}
 		}
@@ -87,8 +87,8 @@ func MetricsToNREvents(logger *zap.Logger, md pmetric.Metrics) []nrEvent {
 }
 
 // Build the compressed JSON payload from pdata.Metrics
-func BuildNREventPayload(logger *zap.Logger, md pmetric.Metrics) ([]byte, int) {
-	nrEventList := MetricsToNREvents(logger, md)
+func BuildNREventPayload(logger *zap.Logger, md pmetric.Metrics, eventType string) ([]byte, int) {
+	nrEventList := MetricsToNREvents(logger, md, eventType)
 	// Convert the slice of maps to a JSON string
 	request, _ := json.Marshal(nrEventList)
 
