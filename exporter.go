@@ -56,8 +56,8 @@ const (
 
 // Create new exporter.
 func newExporter(otlpExporter *exporter.Metrics, cfg Config, set exporter.Settings, telemetryBuilder *metadata.TelemetryBuilder) (*baseExporter, error) {
-	if cfg.MetricsEndpoint != "" {
-		_, err := url.Parse(cfg.MetricsEndpoint)
+	if cfg.otlpHttpExporterConfig.MetricsEndpoint != "" {
+		_, err := url.Parse(cfg.otlpHttpExporterConfig.MetricsEndpoint)
 		if err != nil {
 			return nil, errors.New("endpoint must be a valid URL")
 		}
@@ -87,7 +87,7 @@ func (e *baseExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) e
 // start actually creates the HTTP client. The client construction is deferred till this point as this
 // is the only place we get hold of Extensions which are required to construct auth round tripper.
 func (e *baseExporter) Start(ctx context.Context, host component.Host) error {
-	client, err := e.config.ClientConfig.ToClient(ctx, host, e.settings.TelemetrySettings)
+	client, err := e.config.otlpHttpExporterConfig.ClientConfig.ToClient(ctx, host, e.settings.TelemetrySettings)
 	if err != nil {
 		return err
 	}

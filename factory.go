@@ -27,7 +27,9 @@ func createDefaultConfig(otlpHttpExporterFactory exporter.Factory) component.Cre
 		otlpHttpExporterDefaultConfig := otlpHttpExporterFactory.CreateDefaultConfig().(*otlphttpexporter.Config)
 		otlpHttpExporterDefaultConfig.Endpoint = ""
 		fmt.Println("Printing otlp default configs", otlpHttpExporterDefaultConfig)
-		return otlpHttpExporterDefaultConfig
+		return &Config{
+			otlpHttpExporterConfig: otlpHttpExporterDefaultConfig,
+		}
 	}
 }
 func createMetrics(otlpHttpExporterFactory exporter.Factory) exporter.CreateMetricsFunc {
@@ -52,7 +54,7 @@ func createMetrics(otlpHttpExporterFactory exporter.Factory) exporter.CreateMetr
 			exporterhelper.WithCapabilities(otlpExporter.Capabilities()),
 			// explicitly disable since we rely on http.Client timeout logic.
 			exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}),
-			exporterhelper.WithRetry(c.RetryConfig),
-			exporterhelper.WithQueue(c.QueueConfig))
+			exporterhelper.WithRetry(c.otlpHttpExporterConfig.RetryConfig),
+			exporterhelper.WithQueue(c.otlpHttpExporterConfig.QueueConfig))
 	}
 }
