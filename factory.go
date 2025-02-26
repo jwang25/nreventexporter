@@ -26,14 +26,14 @@ func createDefaultConfig(otlpHttpExporterFactory exporter.Factory) component.Cre
 	return func() component.Config {
 		otlpHttpExporterDefaultConfig := otlpHttpExporterFactory.CreateDefaultConfig().(*otlphttpexporter.Config)
 		otlpHttpExporterDefaultConfig.Endpoint = ""
-		fmt.Println(otlpHttpExporterDefaultConfig)
+		fmt.Println("Printing otlp default configs", otlpHttpExporterDefaultConfig)
 		return otlpHttpExporterDefaultConfig
 	}
 }
 func createMetrics(otlpHttpExporterFactory exporter.Factory) exporter.CreateMetricsFunc {
 	return func(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Metrics, error) {
 		c := cfg.(*Config)
-		fmt.Println(c)
+		fmt.Println("create metrics config", c)
 		otlpExporter, err := otlpHttpExporterFactory.CreateMetrics(ctx, set, c)
 		if err != nil {
 			return nil, err
