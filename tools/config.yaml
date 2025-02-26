@@ -24,7 +24,7 @@ exporters:
     endpoint: localhost:14317
     tls:
       insecure: true
-  nreventexporter:
+  otlphttp:
     endpoint: "foo"
     metrics_endpoint: "<endpoint>"
     api_key: "<api_key>"

@@ -8,6 +8,7 @@ import (
 
 	"github.com/jwang25/nreventexporter/internal/metadata"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configopaque"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
@@ -17,7 +18,7 @@ import (
 func NewFactory() exporter.Factory {
 	otlpHttpExporterFactory := otlphttpexporter.NewFactory()
 	return exporter.NewFactory(
-		metadata.Type,
+		otlpHttpExporterFactory.Type(),
 		createDefaultConfig(otlpHttpExporterFactory),
 		exporter.WithMetrics(createMetrics(otlpHttpExporterFactory), otlpHttpExporterFactory.MetricsStability()),
 	)
@@ -25,7 +26,8 @@ func NewFactory() exporter.Factory {
 func createDefaultConfig(otlpHttpExporterFactory exporter.Factory) component.CreateDefaultConfigFunc {
 	return func() component.Config {
 		otlpHttpExporterDefaultConfig := otlpHttpExporterFactory.CreateDefaultConfig().(*otlphttpexporter.Config)
-		//otlpHttpExporterDefaultConfig.Endpoint = ""
+		otlpHttpExporterDefaultConfig.Endpoint = ""
+		otlpHttpExporterDefaultConfig.Headers = map[string]configopaque.String{}
 		fmt.Println("Printing otlp default configs", otlpHttpExporterDefaultConfig)
 		return &Config{
 			otlpHttpExporterConfig: otlpHttpExporterDefaultConfig,

@@ -16,7 +16,6 @@ type Config struct {
 
 	// The URL to send metrics to. If omitted the Endpoint + "/v1/metrics" will be used.
 	//MetricsEndpoint string `mapstructure:"metrics_endpoint"`
-
 	// API key to use when sending data to the New Relic backend.
 	APIKey string `mapstructure:"api_key"`
 }
