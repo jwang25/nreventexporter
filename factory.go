@@ -30,15 +30,15 @@ func createDefaultConfig(otlpHttpExporterFactory exporter.Factory) component.Cre
 		otlpHttpExporterDefaultConfig.Headers = map[string]configopaque.String{}
 		fmt.Println("Printing otlp default configs", otlpHttpExporterDefaultConfig.MetricsEndpoint)
 		return &Config{
-			otlpHttpExporterConfig: otlpHttpExporterDefaultConfig,
+			OtlpHttpExporterConfig: otlpHttpExporterDefaultConfig,
 		}
 	}
 }
 func createMetrics(otlpHttpExporterFactory exporter.Factory) exporter.CreateMetricsFunc {
 	return func(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Metrics, error) {
 		c := cfg.(*Config)
-		fmt.Println("create metrics config", c)
-		otlpExporter, err := otlpHttpExporterFactory.CreateMetrics(ctx, set, c)
+		fmt.Println("create metrics config", c.OtlpHttpExporterConfig.MetricsEndpoint)
+		otlpExporter, err := otlpHttpExporterFactory.CreateMetrics(ctx, set, c.OtlpHttpExporterConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -50,13 +50,13 @@ func createMetrics(otlpHttpExporterFactory exporter.Factory) exporter.CreateMetr
 		if err != nil {
 			return nil, err
 		}
-		return exporterhelper.NewMetrics(ctx, set, cfg,
+		return exporterhelper.NewMetrics(ctx, set, c.OtlpHttpExporterConfig,
 			oce.pushMetrics,
 			exporterhelper.WithStart(oce.Start),
 			exporterhelper.WithCapabilities(otlpExporter.Capabilities()),
 			// explicitly disable since we rely on http.Client timeout logic.
 			exporterhelper.WithTimeout(exporterhelper.TimeoutConfig{Timeout: 0}),
-			exporterhelper.WithRetry(c.otlpHttpExporterConfig.RetryConfig),
-			exporterhelper.WithQueue(c.otlpHttpExporterConfig.QueueConfig))
+			exporterhelper.WithRetry(c.OtlpHttpExporterConfig.RetryConfig),
+			exporterhelper.WithQueue(c.OtlpHttpExporterConfig.QueueConfig))
 	}
 }

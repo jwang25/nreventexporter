@@ -35,9 +35,6 @@ type baseExporter struct {
 	// Input configuration.
 	config       *Config
 	client       *http.Client
-	tracesURL    string
-	metricsURL   string
-	logsURL      string
 	logger       *zap.Logger
 	settings     exporter.Settings
 	otlpExporter *exporter.Metrics
@@ -56,8 +53,8 @@ const (
 
 // Create new exporter.
 func newExporter(otlpExporter *exporter.Metrics, cfg Config, set exporter.Settings, telemetryBuilder *metadata.TelemetryBuilder) (*baseExporter, error) {
-	if cfg.otlpHttpExporterConfig.MetricsEndpoint != "" {
-		_, err := url.Parse(cfg.otlpHttpExporterConfig.MetricsEndpoint)
+	if cfg.OtlpHttpExporterConfig.MetricsEndpoint != "" {
+		_, err := url.Parse(cfg.OtlpHttpExporterConfig.MetricsEndpoint)
 		if err != nil {
 			return nil, errors.New("endpoint must be a valid URL")
 		}
@@ -87,7 +84,7 @@ func (e *baseExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) e
 // start actually creates the HTTP client. The client construction is deferred till this point as this
 // is the only place we get hold of Extensions which are required to construct auth round tripper.
 func (e *baseExporter) Start(ctx context.Context, host component.Host) error {
-	client, err := e.config.otlpHttpExporterConfig.ClientConfig.ToClient(ctx, host, e.settings.TelemetrySettings)
+	client, err := e.config.OtlpHttpExporterConfig.ClientConfig.ToClient(ctx, host, e.settings.TelemetrySettings)
 	if err != nil {
 		return err
 	}
@@ -120,7 +117,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
-	return e.export(ctx, e.metricsURL, request, e.metricsPartialSuccessHandler, counter)
+	return e.export(ctx, e.config.OtlpHttpExporterConfig.MetricsEndpoint, request, e.metricsPartialSuccessHandler, counter)
 }
 
 func (e *baseExporter) export(ctx context.Context, url string, request []byte, partialSuccessHandler partialSuccessHandler, counter int) error {
@@ -136,6 +133,7 @@ func (e *baseExporter) export(ctx context.Context, url string, request []byte, p
 
 	//e.logger.Debug("Headers", zap.Any("headers", req.Header))
 	resp, err := e.client.Do(req)
+	fmt.Println("url is", url)
 	if err != nil {
 		return fmt.Errorf("failed to make an HTTP request: %w", err)
 	}
